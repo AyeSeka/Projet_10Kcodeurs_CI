@@ -9,7 +9,7 @@
   <meta name="keywords" content="">
 
   <!-- Favicons -->
-  <link href="{{url_for('static', filename='assets/img/logo-10000codeurs.jpg')}}" rel="icon">
+  <link href="{{url_for('static', filename='assets/img/logo-10000codeurs.jpg')}}" rel="logo">
   <link href="{{url_for('static', filename='assets/img/apple-touch-icon.png')}}" rel="apple-touch-icon"> 
 
   <!-- Fonts -->
@@ -51,9 +51,9 @@
         <ul>
           <li><a href="index.html" class="active">Accueil</a></li>
           <!--<li><a href="#">A propos</a></li>-->
-          <li class="dropdown"><a href="#"><span>S'inscrire</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
+          <li class="dropdown"><a href="#"><span>S'inscrire</span><i class="bi bi-chevron-down toggle-dropdown"></i></a>
             <ul>
-              <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSeMRLDqNaaYUxKShMbeGy-XpZCeYWcIy4BZMOXooY8SJ-OYPw/viewform">Ambassadeur 10000 Codeurs</a></li>
+              <li><a href="{{ url_for('inscription') }}">Ambassadeur 10000 Codeurs</a></li>
               <li><a href="#">Adhérent 10000 Codeurs</a></li>
           <!--<li class="dropdown"><a href="#"><span>Deep Dropdown</span> <i class="bi bi-chevron-down toggle-dropdown"></i></a>
                 <ul>
