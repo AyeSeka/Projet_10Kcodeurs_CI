@@ -16,7 +16,7 @@
 <body>
     <div class="container">
         <header>Inscription à 10000 Codeurs</header>
-        <form action="#">
+        <form action="/traitement_inscription_ambassadeur" method="POST">
             <div class="form first">
                 <div class="details personal">
                     <span class="title">Informations personnelles</span>
@@ -251,7 +251,7 @@
                     <div class="fields">
                         <div class="input-field">
                             <label>Ville de résidence <span style="color: red;">*</span></label>
-                            <input type="text" id="city" name="city" placeholder="Votre ville actuelle" required>
+                            <input type="text" id="city" name="city" placeholder="Ex : Abidjan, Dakar, etc." required>
                         </div>
                         <div class="input-field">
                             <label>Statut <span style="color: red;">*</span></label>
@@ -315,12 +315,13 @@
                             </select>
                         </div>
                     </div>
-                    <button class="sumbit">
+                    <button class="submit">
                         <span class="btnText">Soumettre</span>
                         <i class="uil uil-navigator"></i>
                     </button>
                 </div> 
             </div>
+        </form>
     </div>
 </body>
 </html>
