@@ -7,9 +7,34 @@
     <title>Connexion - 10000 Codeurs</title>
     <link href="{{url_for('static', filename='assets/img/logo-10000codeurs.jpg')}}" rel="logo">
     <link href="{{ url_for('static', filename='assets/css/login.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/css/msg_flash.css') }}" rel="stylesheet">
   </head>
   <body>
     <div class="container">
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} flash-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <script>
+                    // Fade out après 5 secondes
+                    setTimeout(function() {
+                        var messages = document.querySelectorAll('.flash-message');
+                        messages.forEach(function(msg) {
+                            msg.style.opacity = '0';
+                            // Supprimer l'élément après l'animation (0.5s)
+                            setTimeout(function() {
+                                msg.remove();
+                            }, 500);
+                        });
+                    }, 5000);
+                </script>
+            {% endif %}
+        {% endwith %}
       <input type="checkbox" id="check">
       <div class="login form">
         <header>Login</header>

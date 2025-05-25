@@ -8,6 +8,7 @@
     <!-- ======== CSS ======== -->
     <link href="{{url_for('static', filename='assets/img/logo-10000codeurs.jpg')}}" rel="logo">
     <link href="{{ url_for('static', filename='assets/css/style_inscription.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='assets/css/msg_flash.css') }}" rel="stylesheet">
 
     <!-- ===== Iconscout CSS ===== -->
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
@@ -15,6 +16,31 @@
 </head>
 <body>
     <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} flash-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <script>
+                    // Fade out après 5 secondes
+                    setTimeout(function() {
+                        var messages = document.querySelectorAll('.flash-message');
+                        messages.forEach(function(msg) {
+                            msg.style.opacity = '0';
+                            // Supprimer l'élément après l'animation (0.5s)
+                            setTimeout(function() {
+                                msg.remove();
+                            }, 500);
+                        });
+                    }, 5000);
+                </script>
+            {% endif %}
+        {% endwith %}
         <header>Inscription à 10000 Codeurs</header>
         <form action="/traitement_inscription_ambassadeur" method="POST">
             <div class="form first">
@@ -242,7 +268,7 @@
                         </div>
                         <div class="input-field">
                             <label>Numéro de téléphone <span style="color: red;">*</span></label>
-                            <input type="tel" id="phone" name="phone" placeholder="+XX XXX XX XX XX" required>
+                            <input type="tel" id="phone" name="phone" placeholder="+225 XXXXXXXXXX" required>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,32 @@
+/* Messages d'erreur */
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Messages de succès */
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Messages d'information */
+.alert-info {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+/* Messages d'avertissement */
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+/* Animation */
+.flash-message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: opacity 0.5s ease-out;
+}
