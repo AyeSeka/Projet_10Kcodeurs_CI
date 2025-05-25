@@ -84,14 +84,21 @@ def cleanup_old_files():
                     if elapsed > timedelta(minutes=5):
                         try:
                             os.remove(filepath)
-                            print(f"[Cleanup] Fichier supprimé : {filepath}")
-                            # Facultatif : supprimer la clé dans last_email_sent
-                            del last_email_sent[email]
+                            print(f"[Cleanup] Fichier supprimé (avec timestamp) : {filepath}")
+                            del last_email_sent[email]  # Optionnel
                         except Exception as e:
                             print(f"[Cleanup] Erreur suppression {filepath} : {e}")
                 else:
-                    # Pas de trace de timestamp, tu peux choisir d'ignorer ou supprimer
-                    print(f"[Cleanup] Aucun timestamp pour {email}, fichier ignoré.")
+                    # Pas de timestamp, on utilise l'heure de modification du fichier
+                    file_mtime = datetime.fromtimestamp(os.path.getmtime(filepath))
+                    if now - file_mtime > timedelta(minutes=2):
+                        try:
+                            os.remove(filepath)
+                            print(f"[Cleanup] Fichier supprimé (sans timestamp, >2min) : {filepath}")
+                        except Exception as e:
+                            print(f"[Cleanup] Erreur suppression {filepath} : {e}")
+                    else:
+                        print(f"[Cleanup] Fichier ignoré (sans timestamp, <2min) : {filepath}")
     except Exception as e:
         print(f"[Cleanup] Erreur inattendue lors du nettoyage : {e}")
 
@@ -149,8 +156,8 @@ def traitement_inscription_ambassadeur():
 
     try:
         birthdate_obj = datetime.strptime(birthdate, '%Y-%m-%d')
-        if birthdate_obj.year < 2007:
-            flash("La date de naissance ne doit pas être antérieure à l'année 2007.", "error")
+        if birthdate_obj.year < 1990 or birthdate_obj.year > 2007:
+            flash("La date de naissance doit être comprise entre 1990 et 2007.", "error")
             return redirect(url_for('inscription_ambassadeur'))
     except ValueError:
         flash("Veuillez entrer une date de naissance valide au format YYYY-MM-DD.", "error")
@@ -211,10 +218,55 @@ def traitement_inscription_ambassadeur():
     if success:
         last_email_sent[email] = now
         flash("Veuillez entrer le Mot de passe reçu par email", "info")
-        return render_template("authentification/connexion.html")
+        return redirect(url_for('connexion', from_inscription='true'))
     else:
         flash("Erreur lors de l'envoi de l'email, veuillez réessayer plus tard.", "error")
         return redirect(url_for('inscription_ambassadeur'))
+
+
+#connexion
+@app.route('/connexion', methods=['GET', 'POST'])
+def connexion():
+    from_inscription = request.args.get('from_inscription') == 'true'
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        password = request.form.get('password')
+
+        if not email or not password:
+            flash("Veuillez remplir tous les champs.", "error")
+            return render_template('authentification/connexion.html', from_inscription=from_inscription)
+
+        # Construire le chemin du fichier Excel
+        excel_filename = f"data_{email}.xlsx"
+        excel_path = os.path.join(app.root_path, 'templates', 'authentification', excel_filename)
+
+        if not os.path.exists(excel_path):
+            flash("Aucun compte associé à cet email.", "error")
+            return render_template('authentification/connexion.html', from_inscription=from_inscription)
+
+        try:
+            df = pd.read_excel(excel_path)
+            stored_password = df.loc[0, 'Password']
+
+        except Exception as e:
+            print(f"[Connexion] Erreur lecture fichier : {e}")
+            flash("Erreur lors de la connexion. Veuillez réessayer.", "error")
+            return render_template('authentification/connexion.html', from_inscription=from_inscription)
+
+        # Vérification du mot de passe après lecture réussie
+        if password == stored_password:
+            flash("Connexion réussie !", "success")
+            return redirect(url_for('index'))
+        else:
+            flash("Mot de passe incorrect.", "error")
+
+    return render_template('authentification/connexion.html', from_inscription=from_inscription)
+
+
+
+
+
 
 if __name__ == '__main__':
     app.secret_key = 'admin123'
