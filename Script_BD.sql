@@ -1,0 +1,34 @@
+-- Création de la base de données
+CREATE DATABASE IF NOT EXISTS suivi_ambassadeur;
+USE suivi_ambassadeur;
+
+-- Table users
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    mdp VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Table ambassadeur
+CREATE TABLE ambassadeur (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    fullname VARCHAR(100) NOT NULL,
+    birthdate DATE NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    country VARCHAR(50) NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    city VARCHAR(50) NOT NULL,
+    statut VARCHAR(30) NOT NULL,
+    profil VARCHAR(30) NOT NULL,
+    diploma VARCHAR(30) NOT NULL,
+    motivation VARCHAR(30) NOT NULL,
+    community VARCHAR(30) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE
+);

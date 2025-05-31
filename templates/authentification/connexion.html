@@ -37,18 +37,18 @@
         {% endwith %}
       <input type="checkbox" id="check">
       <div class="login form">
-        <header>Login</header>
+        <header>Se connecter</header>
         <form action="{{ url_for('connexion') }}" method="POST">
-          <input type="email" name="email" placeholder="Enter your email" required>
-          <input type="password" name="password" placeholder="Enter your password" required>         
+          <input type="email" name="email" placeholder="Entrez votre email" required>
+          <input type="password" name="password" placeholder="Entrez votre mot de passe" required>         
           {% if not from_inscription %}
-            <a href="#">Forgot password?</a>
+            <a href="#">Mot de passe oublié ??</a>
           {% endif %}
-          <input type="submit" class="button" value="Login">
+          <input type="submit" class="button" value="Connexion">
         </form>
         <div class="signup">
-          <span class="signup">Don't have an account?
-            <a href="{{ url_for('index') }}">Signup</a>
+          <span class="signup">Vous n'avez pas de compte ?
+            <a href="{{ url_for('index') }}"> Inscrivez-vous</a>
           </span>
         </div>
 

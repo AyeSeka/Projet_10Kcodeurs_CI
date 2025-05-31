@@ -10,10 +10,23 @@ from email.mime.multipart import MIMEMultipart
 import re
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
+from flask_mysqldb import MySQL
+from werkzeug.security import generate_password_hash
+import MySQLdb.cursors
 
 
 #debut app
 app = Flask(__name__)
+
+# Configuration MySQL
+app.config['MYSQL_HOST'] = 'localhost'
+app.config['MYSQL_USER'] = 'root'
+app.config['MYSQL_PASSWORD'] = ''
+app.config['MYSQL_DB'] = 'suivi_ambassadeur'
+
+mysql = MySQL(app)
+
+
 
 ############ FONCTION #############
 # Dictionnaire global pour stocker la date du dernier envoi par email
@@ -31,12 +44,20 @@ def send_password_email(to_email, password):
 
     smtp_server = 'smtp.gmail.com'
     smtp_port = 587
-    smtp_username = 'seka.aye@uvci.edu.ci'
-    smtp_password = 'xhzc fvwf kmjq ktib'
+    smtp_username = 'ayeseka225@gmail.com'
+    smtp_password = 'voag arxq xysx mhdr'
 
     from_email = smtp_username
-    subject = 'Votre mot de passe généré'
-    body = f"Bonjour,\n\nVoici votre mot de passe généré : {password}\n\nMerci."
+    subject = "Votre mot de passe temporaire pour finaliser votre inscription"
+    body = f"Bonjour,\n\n" \
+       f"Merci pour votre inscription en tant qu’ambassadeur 10 000 Codeurs.\n\n" \
+       f"Voici votre mot de passe temporaire : {password}\n\n" \
+       f"IMPORTANT :\n" \
+       f"Ce mot de passe est valide pendant 5 minutes uniquement.\n" \
+       f"Au-delà de ce délai, vous devrez reprendre le processus d'inscription pour recevoir un nouveau mot de passe.\n\n" \
+       f"Nous vous invitons à l’utiliser immédiatement pour finaliser votre inscription.\n\n" \
+       f"Bien cordialement,\n" \
+       f"L’équipe 10 000 Codeurs Côte d’Ivoire"
 
     message = MIMEMultipart()
     message['From'] = from_email
@@ -91,19 +112,19 @@ def cleanup_old_files():
                 else:
                     # Pas de timestamp, on utilise l'heure de modification du fichier
                     file_mtime = datetime.fromtimestamp(os.path.getmtime(filepath))
-                    if now - file_mtime > timedelta(minutes=2):
+                    if now - file_mtime > timedelta(minutes=5):
                         try:
                             os.remove(filepath)
-                            print(f"[Cleanup] Fichier supprimé (sans timestamp, >2min) : {filepath}")
+                            print(f"[Cleanup] Fichier supprimé (sans timestamp, >5min) : {filepath}")
                         except Exception as e:
                             print(f"[Cleanup] Erreur suppression {filepath} : {e}")
                     else:
-                        print(f"[Cleanup] Fichier ignoré (sans timestamp, <2min) : {filepath}")
+                        print(f"[Cleanup] Fichier ignoré (sans timestamp, <5min) : {filepath}")
     except Exception as e:
         print(f"[Cleanup] Erreur inattendue lors du nettoyage : {e}")
 
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=cleanup_old_files, trigger="interval", minutes=2)
+scheduler.add_job(func=cleanup_old_files, trigger="interval", minutes=5)
 scheduler.start()
 
 # Assure-toi d'arrêter le scheduler à la fermeture propre de l'app
@@ -128,57 +149,72 @@ def inscription_ambassadeur():
 #traitement_inscription
 @app.route('/traitement_inscription_ambassadeur', methods=["POST"])
 def traitement_inscription_ambassadeur():
-    fullname = request.form['fullname']
-    birthdate = request.form['birthdate']
-    email = request.form['email']
-    country = request.form['country']
-    gender = request.form['gender']
-    phone = request.form['phone']
-    city = request.form['city']
-    status = request.form['status']
-    profile = request.form['profile']
-    diploma = request.form['diploma']
-    motivation = request.form['motivation']
-    community = request.form['community']
+    # Récupération des données du formulaire
+    form_data = {
+        'fullname': request.form['fullname'],
+        'birthdate': request.form['birthdate'],
+        'email': request.form['email'],
+        'country': request.form['country'],
+        'gender': request.form['gender'],
+        'phone': request.form['phone'],
+        'city': request.form['city'],
+        'status': request.form['status'],
+        'profile': request.form['profile'],
+        'diploma': request.form['diploma'],
+        'motivation': request.form['motivation'],
+        'community': request.form['community']
+    }
 
-    # Validation formulaire (inchangée)
-    if not fullname or len(fullname) < 5 or len(fullname) > 30:
-        flash("Le nom complet doit contenir entre 5 et 30 caractères.", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+    # Fonction pour gérer les erreurs de validation
+    def handle_validation_error(error_message):
+        flash(error_message, "error")
+        return render_template('authentification/inscription.html', 
+            error_message="Le champ XYZ est invalide.",
+            **form_data
+        )
 
-    if not re.match(r'^[a-zA-ZÀ-ÿ\s\-\' ]+$', fullname):
-        flash("Le nom complet ne doit pas contenir de caractères spéciaux", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+    # Validation formulaire
+    if not form_data['fullname'] or len(form_data['fullname']) < 5 or len(form_data['fullname']) > 30:
+        return handle_validation_error("Le nom complet doit contenir entre 5 et 30 caractères.")
 
-    if not birthdate:
-        flash("La date de naissance est requise.", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+    if not re.match(r'^[a-zA-ZÀ-ÿ\s\-\' ]+$', form_data['fullname']):
+        return handle_validation_error("Le nom complet ne doit pas contenir de caractères spéciaux")
+
+    if not form_data['birthdate']:
+        return handle_validation_error("La date de naissance est requise.")
+
+    if not re.match(r"[^@]+@[^@]+\.[^@]+", form_data['email']):
+        return handle_validation_error("Veuillez entrer une adresse email valide.")
+    
+    # Vérifie si l'email existe déjà dans la base de données
+    cursor = mysql.connection.cursor()
+    cursor.execute("SELECT id FROM users WHERE username = %s", (form_data['email'],))
+    user_exist = cursor.fetchone()
+    cursor.close()
+
+    if user_exist:
+        return handle_validation_error("Cette adresse email est déjà utilisée. Veuillez en choisir une autre.")
 
     try:
-        birthdate_obj = datetime.strptime(birthdate, '%Y-%m-%d')
+        birthdate_obj = datetime.strptime(form_data['birthdate'], '%Y-%m-%d')
         if birthdate_obj.year < 1990 or birthdate_obj.year > 2007:
-            flash("La date de naissance doit être comprise entre 1990 et 2007.", "error")
-            return redirect(url_for('inscription_ambassadeur'))
+            return handle_validation_error("La date de naissance doit être comprise entre 1990 et 2007.")
     except ValueError:
-        flash("Veuillez entrer une date de naissance valide au format YYYY-MM-DD.", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+        return handle_validation_error("Veuillez entrer une date de naissance valide au format YYYY-MM-DD.")
 
-    phone_normalized = phone.replace(" ", "")
+    phone_normalized = form_data['phone'].replace(" ", "")
     if not re.match(r'^(\+225)?\d{10}$', phone_normalized):
-        flash("Veuillez entrer un numéro valide (ex: +2250707070707 ou 0707070707)", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+        return handle_validation_error("Veuillez entrer un numéro valide (ex: +2250707070707 ou 0707070707)")
 
-    if not city or len(city) < 5 or len(city) > 10:
-        flash("Veuillez entrer une ville valide", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+    if not form_data['city'] or len(form_data['city']) < 5 or len(form_data['city']) > 10:
+        return handle_validation_error("Veuillez entrer une ville valide")
 
-    if not re.match(r'^[a-zA-ZÀ-ÿ\s\-\' ]+$', city):
-        flash("Veuillez entrer une ville valide", "error")
-        return redirect(url_for('inscription_ambassadeur'))
+    if not re.match(r'^[a-zA-ZÀ-ÿ\s\-\' ]+$', form_data['city']):
+        return handle_validation_error("Veuillez entrer une ville valide")
 
     # Préparation du chemin fichier Excel
     excel_dir = os.path.join(app.root_path, 'templates', 'authentification')
-    excel_filename = f"data_{email}.xlsx"
+    excel_filename = f"data_{form_data['email']}.xlsx"
     excel_file_path = os.path.join(excel_dir, excel_filename)
 
     # Génération mot de passe
@@ -187,18 +223,18 @@ def traitement_inscription_ambassadeur():
     # Création DataFrame
     data = {
         'SubmissionID': [str(uuid.uuid4())],
-        'Fullname': [fullname],
-        'Birthdate': [birthdate],
-        'Email': [email],
-        'Country': [country],
-        'Gender': [gender],
-        'Phone': [phone],
-        'City': [city],
-        'Status': [status],
-        'Profile': [profile],
-        'Diploma': [diploma],
-        'Motivation': [motivation],
-        'Community': [community],
+        'Fullname': [form_data['fullname']],
+        'Birthdate': [form_data['birthdate']],
+        'Email': [form_data['email']],
+        'Country': [form_data['country']],
+        'Gender': [form_data['gender']],
+        'Phone': [form_data['phone']],
+        'City': [form_data['city']],
+        'Status': [form_data['status']],
+        'Profile': [form_data['profile']],
+        'Diploma': [form_data['diploma']],
+        'Motivation': [form_data['motivation']],
+        'Community': [form_data['community']],
         'Password': [password]
     }
     df = pd.DataFrame(data)
@@ -207,16 +243,16 @@ def traitement_inscription_ambassadeur():
 
     # Vérifier le délai pour envoi email
     now = datetime.now()
-    if email in last_email_sent:
-        elapsed = now - last_email_sent[email]
+    if form_data['email'] in last_email_sent:
+        elapsed = now - last_email_sent[form_data['email']]
         if elapsed < timedelta(minutes=5):
             flash("Un email a déjà été envoyé à cette adresse il y a moins de 5 minutes. Veuillez patienter avant de réessayer.", "warning")
             return redirect(url_for('inscription_ambassadeur'))
 
     # Envoi de l'email
-    success = send_password_email(email, password)
+    success = send_password_email(form_data['email'], password)
     if success:
-        last_email_sent[email] = now
+        last_email_sent[form_data['email']] = now
         flash("Veuillez entrer le Mot de passe reçu par email", "info")
         return redirect(url_for('connexion', from_inscription='true'))
     else:
@@ -228,7 +264,6 @@ def traitement_inscription_ambassadeur():
 @app.route('/connexion', methods=['GET', 'POST'])
 def connexion():
     from_inscription = request.args.get('from_inscription') == 'true'
-
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -237,7 +272,7 @@ def connexion():
             flash("Veuillez remplir tous les champs.", "error")
             return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
-        # Construire le chemin du fichier Excel
+        # Vérifie que le fichier Excel de cet utilisateur existe
         excel_filename = f"data_{email}.xlsx"
         excel_path = os.path.join(app.root_path, 'templates', 'authentification', excel_filename)
 
@@ -248,14 +283,56 @@ def connexion():
         try:
             df = pd.read_excel(excel_path)
             stored_password = df.loc[0, 'Password']
-
         except Exception as e:
             print(f"[Connexion] Erreur lecture fichier : {e}")
             flash("Erreur lors de la connexion. Veuillez réessayer.", "error")
             return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
-        # Vérification du mot de passe après lecture réussie
+        # Vérifie le mot de passe
         if password == stored_password:
+            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+            # Vérifie si l'utilisateur existe déjà dans la table user
+            cursor.execute("SELECT * FROM users WHERE username = %s", (email,))
+            user = cursor.fetchone()
+
+            if not user:
+                # 1. Insertion dans la table user
+                hashed_password = generate_password_hash(password)
+                cursor.execute("INSERT INTO users (username, mdp, role) VALUES (%s, %s, %s)",
+                               (email, hashed_password, 'ambassadeur'))
+                mysql.connection.commit()
+
+                # Récupération de l'ID de l'utilisateur inséré
+                user_id = cursor.lastrowid
+
+                # 2. Insertion dans la table ambassadeur
+                cursor.execute("""
+                    INSERT INTO ambassadeur (
+                        user_id, fullname, birthdate, email, country, gender, phone, city, statut,
+                        profil, diploma, motivation, community
+                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                """, (
+                    user_id,
+                    df.loc[0, 'Fullname'],
+                    df.loc[0, 'Birthdate'],
+                    df.loc[0, 'Email'],
+                    df.loc[0, 'Country'],
+                    df.loc[0, 'Gender'],
+                    df.loc[0, 'Phone'],
+                    df.loc[0, 'City'],
+                    df.loc[0, 'Status'],
+                    df.loc[0, 'Profile'],
+                    df.loc[0, 'Diploma'],
+                    df.loc[0, 'Motivation'],
+                    df.loc[0, 'Community']
+                ))
+                mysql.connection.commit()
+
+                print("[Connexion] Utilisateur et ambassadeur insérés avec succès.")
+            else:
+                print("[Connexion] Utilisateur déjà présent dans la base.")
+
             flash("Connexion réussie !", "success")
             return redirect(url_for('index'))
         else:

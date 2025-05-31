@@ -48,20 +48,21 @@
                         <div class="fields">
                             <div class="input-field">
                                 <label>Nom et prénom <span style="color: red;">*</span></label>
-                                <input type="text" id="fullname" name="fullname" placeholder="Votre nom et prénom" required>
+                                <input type="text" id="fullname" name="fullname" placeholder="Votre nom et prénom" value="{{ fullname }}" required>
                             </div>
                             <div class="input-field">
                                 <label>Date de naissance <span style="color: red;">*</span></label>
-                                <input type="date" id="birthdate" name="birthdate" required>
+                                <input type="date" id="birthdate" name="birthdate" value="{{ birthdate }}" required>
                             </div>
                             <div class="input-field">
                                 <label>Email <span style="color: red;">*</span></label>
-                                <input type="email" id="email" name="email" placeholder="exemple@email.com" required>
+                                <input type="email" id="email" name="email" placeholder="exemple@email.com" value="{{ email }}" required>
                             </div>
                             <div class="input-field">
-                                <label>Pays <span style="color: red;">*</span></label>
-                                <select id="country" name="country" required>
+                                <label>Pays de Naissance<span style="color: red;">*</span></label>
+                                <select id="country" name="country" value="{{ country }}" required>
                                     <option disabled selected value="">Sélectionner un pays</option>
+                                    <option value="Côte d'Ivoire">Côte d'Ivoire</option>                                    
                                     <option value="Afghanistan">Afghanistan</option>
                                     <option value="Afrique du Sud">Afrique du Sud</option>
                                     <option value="Albanie">Albanie</option>
@@ -109,7 +110,6 @@
                                     <option value="Corée du Nord">Corée du Nord</option>
                                     <option value="Corée du Sud">Corée du Sud</option>
                                     <option value="Costa Rica">Costa Rica</option>
-                                    <option value="Côte d'Ivoire">Côte d'Ivoire</option>
                                     <option value="Croatie">Croatie</option>
                                     <option value="Cuba">Cuba</option>
                                     <option value="Danemark">Danemark</option>
@@ -259,15 +259,15 @@
                             </div>
                             <div class="input-field">
                                 <label>Genre <span style="color: red;">*</span></label>
-                                <select id="gender" name="gender" required>
+                                <select id="gender" name="gender" value="{{ gender }}" required>
                                     <option disabled selected>Sélectionnez le sexe</option>
-                                    <option value="male">Homme</option>
-                                    <option value="female">Femme</option>
+                                    <option value="Homme">Homme</option>
+                                    <option value="femme">Femme</option>
                                 </select>
                             </div>
                             <div class="input-field">
                                 <label>Numéro de téléphone <span style="color: red;">*</span></label>
-                                <input type="tel" id="phone" name="phone" placeholder="+225 XXXXXXXXXX" required>
+                                <input type="tel" id="phone" name="phone" placeholder="+225XXXXXXXXXX" value="{{ phone }}" required>
                             </div>
                         </div>
                     </div>
@@ -276,29 +276,29 @@
                         <div class="fields">
                             <div class="input-field">
                                 <label>Ville de résidence <span style="color: red;">*</span></label>
-                                <input type="text" id="city" name="city" placeholder="Ex : Abidjan, Dakar, etc." required>
+                                <input type="text" id="city" name="city" placeholder="Ex : Abidjan, Dakar, etc." value="{{ city }}" required>
                             </div>
                             <div class="input-field">
                                 <label>Statut <span style="color: red;">*</span></label>
-                                <select id="status" name="status" required>
+                                <select id="status" name="status" value="{{ status }}" required>
                                     <option disabled selected>Sélectionnez le statut</option>
-                                    <option value="student">Étudiant</option>
-                                    <option value="professional">Professionnel</option>
-                                    <option value="job_seeker">En recherche d'emploi</option>
+                                    <option value="Étudiant">Étudiant</option>
+                                    <option value="Professionnel">Professionnel</option>
+                                    <option value="En recherche d'emploi">En recherche d'emploi</option>
                                 </select>
                             </div>
                             <div class="input-field">
                                 <label>Profil <span style="color: red;">*</span></label>
-                                <select id="profile" name="profile" required>
+                                <select id="profile" name="profile" value="{{ profile }}" required>
                                     <option disabled selected>Sélectionnez le profil</option>
-                                    <option value="trained_it">Formé en informatique</option>
-                                    <option value="non_it">Non informaticien</option>
-                                    <option value="self_taught">Autodidacte en informatique</option>
+                                    <option value="Formé en informatique">Formé en informatique</option>
+                                    <option value="Non informaticien">Non informaticien</option>
+                                    <option value="sAutodidacte en informatique">Autodidacte en informatique</option>
                                 </select>
                             </div>
                             <div class="input-field">
                                 <label>Niveau d'étude <span style="color: red;">*</span></label>
-                                <select id="diploma" name="diploma" required>
+                                <select id="diploma" name="diploma" value="{{ diploma }}" required>
                                     <option disabled selected>Sélectionnez le diplôme</option>
                                     <option value="brevet">BEPC/Brevet</option>
                                     <option value="bac">Baccalauréat</option>
@@ -311,17 +311,17 @@
                             </div>
                             <div class="input-field">
                                 <label>Pourquoi rejoindre 10000 codeurs ? <span style="color: red;">*</span></label>
-                                <select id="motivation" name="motivation" required>
+                                <select id="motivation" name="motivation" value="{{ motivation }}" required>
                                     <option disabled selected>Sélectionnez le profil</option>
                                     <option value="job">Trouver un emploi dans le numérique</option>
                                     <option value="entrepreneur">Développer mon projet entrepreneurial</option>
-                                    <option value="contribute">Contribuer à 10000 Codeurs</option>
-                                    <option value="visibility">Augmenter ma visibilité</option>
+                                    <option value="contribution">Contribuer à 10000 Codeurs</option>
+                                    <option value="visibilité">Augmenter ma visibilité</option>
                                 </select>
                             </div>
                             <div class="input-field">
                                 <label>Quelle communauté vises-tu ? <span style="color: red;">*</span></label>
-                                <select id="community" name="community" required>
+                                <select id="community" name="community" value="{{ community }}" required>
                                     <option disabled selected value="">Sélectionner une communauté</option>
                                     <option value="ENTREPRENEURIAT">Entrepreneuriat</option>
                                     <option value="NO CODE">No Code</option>
