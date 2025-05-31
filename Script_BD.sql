@@ -15,7 +15,7 @@ CREATE TABLE users (
 -- Table ambassadeur
 CREATE TABLE ambassadeur (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
+    user_id INT NOT NULL,
     fullname VARCHAR(100) NOT NULL,
     birthdate DATE NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,

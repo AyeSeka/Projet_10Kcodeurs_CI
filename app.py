@@ -13,6 +13,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mysqldb import MySQL
 from werkzeug.security import generate_password_hash
 import MySQLdb.cursors
+from dotenv import load_dotenv
 
 
 #debut app
@@ -42,10 +43,12 @@ def send_password_email(to_email, password):
             print(f"Email déjà envoyé à {to_email} il y a moins de 5 minutes. Envoi annulé.")
             return "wait"
 
-    smtp_server = 'smtp.gmail.com'
-    smtp_port = 587
-    smtp_username = 'ayeseka225@gmail.com'
-    smtp_password = 'voag arxq xysx mhdr'
+    load_dotenv()  # Charge les variables définies dans .env
+
+    smtp_server = os.getenv('SMTP_SERVER')
+    smtp_port = int(os.getenv('SMTP_PORT'))
+    smtp_username = os.getenv('SMTP_USERNAME')
+    smtp_password = os.getenv('SMTP_PASSWORD')
 
     from_email = smtp_username
     subject = "Votre mot de passe temporaire pour finaliser votre inscription"
@@ -193,7 +196,7 @@ def traitement_inscription_ambassadeur():
     cursor.close()
 
     if user_exist:
-        return handle_validation_error("Cette adresse email est déjà utilisée. Veuillez en choisir une autre.")
+        return handle_validation_error("Cette adresse email est déjà utilisée.")
 
     try:
         birthdate_obj = datetime.strptime(form_data['birthdate'], '%Y-%m-%d')
