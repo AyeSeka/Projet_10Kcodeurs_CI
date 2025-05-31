@@ -20,10 +20,11 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 
 # Configuration MySQL
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = ''
-app.config['MYSQL_DB'] = 'suivi_ambassadeur'
+load_dotenv()
+app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
+app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
+app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
+app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
 mysql = MySQL(app)
 
@@ -42,8 +43,6 @@ def send_password_email(to_email, password):
         if delta < timedelta(minutes=5):
             print(f"Email déjà envoyé à {to_email} il y a moins de 5 minutes. Envoi annulé.")
             return "wait"
-
-    load_dotenv()  # Charge les variables définies dans .env
 
     smtp_server = os.getenv('SMTP_SERVER')
     smtp_port = int(os.getenv('SMTP_PORT'))
