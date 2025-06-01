@@ -145,7 +145,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-
+@app.before_request
+def require_login():
+    allowed_routes = ['index', 'inscription_ambassadeur', 'connexion', 'static']
+    if request.endpoint not in allowed_routes and 'user_id' not in session:
+        return redirect(url_for('connexion'))
 
 
 
