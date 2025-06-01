@@ -11,9 +11,11 @@ import re
 from datetime import datetime, timedelta
 from apscheduler.schedulers.background import BackgroundScheduler
 from flask_mysqldb import MySQL
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 import MySQLdb.cursors
 from dotenv import load_dotenv
+from functools import wraps
+from flask import session, redirect, url_for, flash
 
 
 #debut app
@@ -132,6 +134,19 @@ scheduler.start()
 # Assure-toi d'arrêter le scheduler à la fermeture propre de l'app
 import atexit
 atexit.register(lambda: scheduler.shutdown())
+
+#fonction de securité accès dashboard sans être connecté
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            flash("Veuillez vous connecter pour accéder à cette page.", "error")
+            return redirect(url_for('connexion'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
 
 
 
@@ -266,6 +281,7 @@ def traitement_inscription_ambassadeur():
 @app.route('/connexion', methods=['GET', 'POST'])
 def connexion():
     from_inscription = request.args.get('from_inscription') == 'true'
+
     if request.method == 'POST':
         email = request.form.get('email')
         password = request.form.get('password')
@@ -274,41 +290,45 @@ def connexion():
             flash("Veuillez remplir tous les champs.", "error")
             return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
-        # Vérifie que le fichier Excel de cet utilisateur existe
+        # Vérifie que le fichier Excel de cet utilisateur existe (1ère connexion)
         excel_filename = f"data_{email}.xlsx"
         excel_path = os.path.join(app.root_path, 'templates', 'authentification', excel_filename)
 
-        if not os.path.exists(excel_path):
-            flash("Aucun compte associé à cet email.", "error")
-            return render_template('authentification/connexion.html', from_inscription=from_inscription)
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute("SELECT * FROM users WHERE username = %s", (email,))
+        user = cursor.fetchone()
 
-        try:
-            df = pd.read_excel(excel_path)
-            stored_password = df.loc[0, 'Password']
-        except Exception as e:
-            print(f"[Connexion] Erreur lecture fichier : {e}")
-            flash("Erreur lors de la connexion. Veuillez réessayer.", "error")
-            return render_template('authentification/connexion.html', from_inscription=from_inscription)
+        if user:
+            # Connexion quotidienne
+            if check_password_hash(user['mdp'], password):
+                session['user_id'] = user['id']
+                session['email'] = user['username']
+                flash("Connexion réussie !", "success")
+                return redirect(url_for('index'))
+            else:
+                flash("Mot de passe incorrect.", "error")
+                return render_template('authentification/connexion.html', from_inscription=from_inscription)
+        else:
+            # 1ère connexion via fichier Excel
+            if not os.path.exists(excel_path):
+                flash("Aucun compte associé à cet email.", "error")
+                return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
-        # Vérifie le mot de passe
-        if password == stored_password:
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+            try:
+                df = pd.read_excel(excel_path)
+                stored_password = df.loc[0, 'Password']
+            except Exception as e:
+                print(f"[Connexion] Erreur lecture fichier : {e}")
+                flash("Erreur lors de la connexion. Veuillez réessayer.", "error")
+                return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
-            # Vérifie si l'utilisateur existe déjà dans la table user
-            cursor.execute("SELECT * FROM users WHERE username = %s", (email,))
-            user = cursor.fetchone()
-
-            if not user:
-                # 1. Insertion dans la table user
+            if password == stored_password:
                 hashed_password = generate_password_hash(password)
                 cursor.execute("INSERT INTO users (username, mdp, role) VALUES (%s, %s, %s)",
                                (email, hashed_password, 'ambassadeur'))
                 mysql.connection.commit()
-
-                # Récupération de l'ID de l'utilisateur inséré
                 user_id = cursor.lastrowid
 
-                # 2. Insertion dans la table ambassadeur
                 cursor.execute("""
                     INSERT INTO ambassadeur (
                         user_id, fullname, birthdate, email, country, gender, phone, city, statut,
@@ -331,18 +351,28 @@ def connexion():
                 ))
                 mysql.connection.commit()
 
-                print("[Connexion] Utilisateur et ambassadeur insérés avec succès.")
+                # Connexion immédiate après inscription
+                session['user_id'] = user_id
+                session['email'] = email
+                flash("Compte créé et connexion réussie !", "success")
+                return redirect(url_for('index'))
             else:
-                print("[Connexion] Utilisateur déjà présent dans la base.")
-
-            flash("Connexion réussie !", "success")
-            return redirect(url_for('index'))
-        else:
-            flash("Mot de passe incorrect.", "error")
+                flash("Mot de passe incorrect.", "error")
 
     return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
+#deconnexion
+@app.route('/deconnexion')
+def deconnexion():
+    session.clear()
+    flash("Déconnecté avec succès.", "success")
+    return redirect(url_for('connexion'))
 
+"""
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    return render_template('dashboard.html')"""
 
 
 
