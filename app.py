@@ -378,7 +378,7 @@ def dashboard():
 
 
 if __name__ == '__main__':
-    app.secret_key = 'admin123'
+    app.secret_key = os.getenv('secret_key')
     app.run(debug=True)
 
 
