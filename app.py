@@ -147,8 +147,9 @@ def login_required(f):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['index', 'inscription_ambassadeur', 'connexion', 'static']
+    allowed_routes = ['index', 'inscription_ambassadeur', 'connexion', 'static','accueil_dashboard']
     if request.endpoint not in allowed_routes and 'user_id' not in session:
+        flash("Veuillez vous authentifiez", "error")
         return redirect(url_for('connexion'))
 
 
@@ -160,12 +161,10 @@ def require_login():
 def index():
     return render_template("index.html")
 
-
 #inscription
 @app.route("/inscription_ambassadeur")
 def inscription_ambassadeur():
     return render_template("authentification/inscription.html")
-
 
 #traitement_inscription
 @app.route('/traitement_inscription_ambassadeur', methods=["POST"])
@@ -308,7 +307,7 @@ def connexion():
                 session['user_id'] = user['id']
                 session['email'] = user['username']
                 flash("Connexion réussie !", "success")
-                return redirect(url_for('index'))
+                return redirect(url_for('accueil_dashboard'))
             else:
                 flash("Mot de passe incorrect.", "error")
                 return render_template('authentification/connexion.html', from_inscription=from_inscription)
@@ -365,6 +364,7 @@ def connexion():
 
     return render_template('authentification/connexion.html', from_inscription=from_inscription)
 
+
 #deconnexion
 @app.route('/deconnexion')
 def deconnexion():
@@ -372,11 +372,11 @@ def deconnexion():
     flash("Déconnecté avec succès.", "success")
     return redirect(url_for('connexion'))
 
-"""
-@app.route('/dashboard')
-@login_required
-def dashboard():
-    return render_template('dashboard.html')"""
+
+#Dashboard
+@app.route('/accueil_dashboard')
+def accueil_dashboard():
+    return render_template('accueil_dashboard.html')
 
 
 
