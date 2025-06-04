@@ -147,7 +147,7 @@ def login_required(f):
 
 @app.before_request
 def require_login():
-    allowed_routes = ['index', 'inscription_ambassadeur', 'connexion', 'static','accueil_dashboard']
+    allowed_routes = ['index', 'inscription_ambassadeur', 'connexion', 'static']
     if request.endpoint not in allowed_routes and 'user_id' not in session:
         flash("Veuillez vous authentifiez", "error")
         return redirect(url_for('connexion'))
@@ -376,9 +376,11 @@ def deconnexion():
 #Dashboard
 @app.route('/accueil_dashboard')
 def accueil_dashboard():
-    return render_template('accueil_dashboard.html')
+    return render_template('accueil_dashboard.html', show_image=True)
 
-
+@app.route('/profile')
+def profile():
+    return render_template('profile.html', show_image=False)
 
 
 if __name__ == '__main__':

@@ -13,9 +13,7 @@
   <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png"/>
   <link rel="mask-icon" href="safari-pinned-tab.svg" color="#00b4b6"/>
   
-
   <meta name="description" content="Admin One - free Tailwind dashboard">
-
   <meta property="og:url" content="https://justboil.github.io/admin-one-tailwind/">
   <meta property="og:site_name" content="JustBoil.me">
   <meta property="og:title" content="Admin One HTML">
@@ -24,7 +22,6 @@
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1920">
   <meta property="og:image:height" content="960">
-
   <meta property="twitter:card" content="summary_large_image">
   <meta property="twitter:title" content="Admin One HTML">
   <meta property="twitter:description" content="Admin One - free Tailwind dashboard">
@@ -41,20 +38,32 @@
     gtag('config', 'UA-130795909-1');
   </script>
 
+  <style>
+    .centered-image {
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      width: 50%; /* Ajustez la largeur selon vos besoins */
+    }
+  </style>
+
 </head>
 <body>
 <div id="app">
 {% include 'Partials/nav_ambassadeur.html' %}
 {% block body %}
+  {% if show_image %}
+    <img src="{{ url_for('static', filename='assets/img/design.png') }}" alt="image accueil" class="centered-image">
+  {% endif %}
+  
 {% endblock %}
+
 
 <!-- Scripts below are for demo only -->
 <script src="{{ url_for('static', filename='assets/js/main_dash.js') }}"></script>
 <script type="text/javascript" src="js/main.min.js?v=1628755089081"></script>
-
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
 <script type="text/javascript" src="js/chart.sample.min.js"></script>
-
 
 <script>
   !function(f,b,e,v,n,t,s)
