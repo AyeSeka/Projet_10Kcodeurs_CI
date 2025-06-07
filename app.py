@@ -378,9 +378,102 @@ def deconnexion():
 def accueil_dashboard():
     return render_template('accueil_dashboard.html', show_image=True)
 
-@app.route('/profile')
+
+
+#Profile
+@app.route('/profile', methods=['GET', 'POST'])
 def profile():
-    return render_template('profile.html', show_image=False)
+    user_id = session.get('user_id')
+    if not user_id:
+        flash("Veuillez vous connecter.", "error")
+        return redirect(url_for('connexion'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    if request.method == 'POST':
+        form_data = request.form
+
+        # Gestion changement mot de passe
+        current_password = form_data.get('password')
+        new_password1 = form_data.get('new_password1')
+        new_password2 = form_data.get('new_password2')
+
+        if any([current_password, new_password1, new_password2]):
+            if not all([current_password, new_password1, new_password2]):
+                flash("Tous les champs du mot de passe doivent être remplis.", "error")
+                return redirect(url_for('profile'))
+
+            # Vérifier l'ancien mot de passe
+            cursor.execute("SELECT mdp FROM users WHERE id = %s", (user_id,))
+            user = cursor.fetchone()
+            if not user or not check_password_hash(user['mdp'], current_password):
+                flash("Mot de passe actuel incorrect.", "error")
+                return redirect(url_for('profile'))
+
+            if new_password1 != new_password2:
+                flash("Les nouveaux mots de passe ne correspondent pas.", "error")
+                return redirect(url_for('profile'))
+
+            # Met à jour le mot de passe
+            hashed_password = generate_password_hash(new_password1)
+            cursor.execute("UPDATE users SET mdp = %s, updated_at = NOW() WHERE id = %s", (hashed_password, user_id))
+            mysql.connection.commit()
+            flash("Mot de passe mis à jour avec succès.", "success")
+            return redirect(url_for('profile'))
+
+        # Gestion mise à jour email, téléphone, ville
+        email = form_data.get('email')
+        city = form_data.get('city')
+        phone = form_data.get('phone')
+
+        if email and city and phone:
+            # Vérification email
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                flash("Veuillez entrer une adresse email valide.", "error")
+                return redirect(url_for('profile'))
+
+            phone_normalized = phone.replace(" ", "")
+            if not re.match(r'^(\+225)?\d{10}$', phone_normalized):
+                flash("Veuillez entrer un numéro valide (ex: +2250707070707 ou 0707070707).", "error")
+                return redirect(url_for('profile'))
+
+            if len(city) < 5 or len(city) > 10:
+                flash("Veuillez entrer une ville valide (entre 5 et 10 caractères).", "error")
+                return redirect(url_for('profile'))
+
+            if not re.match(r'^[a-zA-ZÀ-ÿ\s\-\' ]+$', city):
+                flash("Veuillez entrer une ville valide (lettres uniquement).", "error")
+                return redirect(url_for('profile'))
+
+            # Mise à jour des infos
+            cursor.execute("""
+                UPDATE ambassadeur 
+                SET email = %s, city = %s, phone = %s, updated_at = NOW()
+                WHERE user_id = %s
+            """, (email, city, phone_normalized, user_id))
+
+            cursor.execute("""
+                UPDATE users 
+                SET username = %s, updated_at = NOW()
+                WHERE id = %s
+            """, (email, user_id))
+
+            mysql.connection.commit()
+            flash("Profil mis à jour avec succès.", "success")
+            return redirect(url_for('profile'))
+
+        flash("Aucune donnée à mettre à jour.", "warning")
+        return redirect(url_for('profile'))
+
+    # GET : affichage du profil
+    cursor.execute("SELECT * FROM ambassadeur WHERE user_id = %s", (user_id,))
+    data = cursor.fetchone()
+    cursor.close()
+
+    return render_template('profile.html', show_image=False, data=data)
+
+
+
 
 
 if __name__ == '__main__':

@@ -10,29 +10,22 @@
           </p>
         </header>
         <div class="card-content">
-          <div class="image w-48 h-48 mx-auto">
-            <img src="https://avatars.dicebear.com/v2/initials/john-doe.svg" alt="John Doe" class="rounded-full">
-          </div>
-          <div class="field file">
-            <label class="upload control">
-              <a class="button blue">
-                Upload
-              </a>
-              <input type="file">
-            </label>
-          </div>          
-          <hr>
           <div class="field">
             <label class="label">Name</label>
             <div class="control">
-              <input type="text" readonly value="John Doe" class="input is-static">
+              <input type="text" readonly value={{data.fullname}} class="input is-static">
             </div>
           </div>
-          <hr>
           <div class="field">
-            <label class="label">E-mail</label>
+            <label class="label">Communauté</label>
             <div class="control">
-              <input type="text" readonly value="user@example.com" class="input is-static">
+              <input type="text" readonly value={{data.community}} class="input is-static">
+            </div>
+          </div>
+          <div class="field">
+            <label class="label">Profil</label>
+            <div class="control">
+              <input type="text" readonly value={{data.profil}} class="input is-static">
             </div>
           </div>
         </div>
@@ -41,52 +34,46 @@
         <header class="card-header">
           <p class="card-header-title">
             <span class="icon"><i class="mdi mdi-account-circle"></i></span>
-            Edit Profile
+            Modifier Profile
           </p>
         </header>
         <div class="card-content">
-          <form>
-            <div class="field">
-              <label class="label">Avatar</label>
-              <div class="field-body">
-                <div class="field file">
-                  <label class="upload control">
-                    <a class="button blue">
-                      Upload
-                    </a>
-                    <input type="file">
-                  </label>
-                </div>
-              </div>
-            </div>
-            <hr>
-            <div class="field">
-              <label class="label">Name</label>
-              <div class="field-body">
-                <div class="field">
-                  <div class="control">
-                    <input type="text" autocomplete="on" name="name" value="John Doe" class="input" required>
-                  </div>
-                  <p class="help">Required. Your name</p>
-                </div>
-              </div>
-            </div>
+          <form action="/profile" method="POST">
             <div class="field">
               <label class="label">E-mail</label>
               <div class="field-body">
                 <div class="field">
                   <div class="control">
-                    <input type="email" autocomplete="on" name="email" value="user@example.com" class="input" required>
+                    <input type="text" name="email" value={{data.email}} class="input">
                   </div>
-                  <p class="help">Required. Your e-mail</p>
                 </div>
               </div>
             </div>
+            <div class="field">
+              <label class="label">Ville de résidence</label>
+              <div class="field-body">
+                <div class="field">
+                  <div class="control">
+                    <input type="text" name="city" value={{data.city}} class="input">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="field">
+              <label class="label">Numéro de téléphone</label>
+              <div class="field-body">
+                <div class="field">
+                  <div class="control">
+                    <input type="text" name="phone" value={{data.phone}} class="input">
+                  </div>
+                </div>
+              </div>
+            </div>          
             <hr>
             <div class="field">
               <div class="control">
                 <button type="submit" class="button green">
-                  Submit
+                  Valider
                 </button>
               </div>
             </div>
@@ -98,38 +85,35 @@
       <header class="card-header">
         <p class="card-header-title">
           <span class="icon"><i class="mdi mdi-lock"></i></span>
-          Change Password
+          Modifier Mot de passe
         </p>
       </header>
       <div class="card-content">
-        <form>
+        <form action="/profile" method="POST">
           <div class="field">
-            <label class="label">Current password</label>
+            <label class="label">Mot de passe Actuel</label>
             <div class="control">
-              <input type="password" name="password_current" autocomplete="current-password" class="input" required>
+              <input type="password" name="password"  class="input">
             </div>
-            <p class="help">Required. Your current password</p>
           </div>
           <hr>
           <div class="field">
-            <label class="label">New password</label>
+            <label class="label">Nouveau Mot de passe</label>
             <div class="control">
-              <input type="password" autocomplete="new-password" name="password" class="input" required>
+              <input type="password" name="new_password1" class="input">
             </div>
-            <p class="help">Required. New password</p>
           </div>
           <div class="field">
-            <label class="label">Confirm password</label>
+            <label class="label">Confirmez Mot de passe</label>
             <div class="control">
-              <input type="password" autocomplete="new-password" name="password_confirmation" class="input" required>
+              <input type="password"  name="new_password2" class="input" >
             </div>
-            <p class="help">Required. New password one more time</p>
           </div>
           <hr>
           <div class="field">
             <div class="control">
               <button type="submit" class="button green">
-                Submit
+                Valider
               </button>
             </div>
           </div>

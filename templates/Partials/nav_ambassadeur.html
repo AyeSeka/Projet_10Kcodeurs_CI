@@ -1,4 +1,30 @@
 <nav id="navbar-main" class="navbar is-fixed-top">
+  <div class="navbar-menu">
+{% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div id="flash-container">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} flash-message">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+                <script>
+                    // Fade out après 5 secondes
+                    setTimeout(function() {
+                        var messages = document.querySelectorAll('.flash-message');
+                        messages.forEach(function(msg) {
+                            msg.style.opacity = '0';
+                            // Supprimer l'élément après l'animation (0.5s)
+                            setTimeout(function() {
+                                msg.remove();
+                            }, 500);
+                        });
+                    }, 5000);
+                </script>
+            {% endif %}
+          {% endwith %}    
+  </div>  
   <div class="navbar-menu" id="navbar-menu">
     <div class="navbar-end">
       <div class="navbar-item dropdown has-divider has-user-avatar">
