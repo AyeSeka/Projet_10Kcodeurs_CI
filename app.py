@@ -379,7 +379,6 @@ def accueil_dashboard():
     return render_template('accueil_dashboard.html', show_image=True)
 
 
-
 #Profile
 @app.route('/profile', methods=['GET', 'POST'])
 def profile():
@@ -472,6 +471,11 @@ def profile():
 
     return render_template('profile.html', show_image=False, data=data)
 
+
+#test_ecrit
+@app.route('/test_ecrit')
+def test_ecrit():
+    return render_template('tally_form.html', show_image=True)
 
 
 
